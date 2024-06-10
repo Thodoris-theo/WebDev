@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Patient</title>
+</head>
+<body>
+    <h1>Update Patient</h1>
+    <form id="updatePatientForm">
+        <label for="userId">Patient ID:</label>
+        <input type="text" id="userId" name="userId" required><br>
+
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="firstName" required><br>
+
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="lastName" required><br>
+
+        <!-- Add more fields for other patient information as needed -->
+
+        <button type="submit">Update Patient</button>
+    </form>
+
+    <script>
+        document.getElementById('updatePatientForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const userId = document.getElementById('userId').value;
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+
+            const updatedData = { firstName, lastName }; // Add more fields as needed
+
+            try {
+                const response = await fetch(`/api/doctor/patients/${userId}/update`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(data.message);
+                } else {
+                    const errorData = await response.json();
+                    alert(errorData.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating patient');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Creation</title>
+    <link rel="stylesheet" type="text/css" href="style_index.css">
+</head>
+
+<body>
+    <h1>Create a New User</h1>
+    <form id="userForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br>
+
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="firstName" required><br>
+
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="lastName" required><br>
+
+        <label for="identity_number">Identity Number:</label>
+        <input type="text" id="identity_number" name="identity_number" required><br>
+
+        <label for="role">Role:</label>
+        <select id="role" name="role">
+            <option value="secretary">secretary</option>
+            <option value="doctor">doctor</option>
+            <option value="patient">patient</option>
+        </select><br>
+
+        <div id="errorDiv" class="error-message" style="color: red;"></div>
+
+        <button type="submit">Create User</button>
+    </form>
+
+    <script>
+        document.getElementById('userForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const formData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                identity_number: document.getElementById('identity_number').value,
+                role: document.getElementById('role').value
+            };
+
+            try {
+                const response = await fetch('/create_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('userForm').reset();
+                    document.getElementById('errorDiv').textContent = "";
+
+                    // Ανακατεύθυνση βάσει της απάντησης από τον server
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        throw new Error("No redirection URL provided");
+                    }
+                } else {
+                    const errorData = await response.json();
+                    document.getElementById('errorDiv').textContent = 'Error: ' + errorData.message;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorDiv').textContent = 'Error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+
+</html>

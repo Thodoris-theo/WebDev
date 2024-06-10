@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patients Table</title>
+    <link rel="stylesheet" type="text/css" href="patients.css">
+</head>
+
+<body>
+    <h1>Patients Table</h1>
+    <table id="patients-table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Identity Number</th>
+            </tr>
+        </thead>
+        <tbody id="patients-body">
+            <!-- Patients data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        // Fetch patients data from the backend
+        fetch('/api/doctor/patients')
+            .then(response => response.json())
+            .then(data => {
+                const patientsBody = document.getElementById('patients-body');
+                // Check if data is an array
+                if (Array.isArray(data)) {
+                    // Loop through the patients data and create table rows
+                    data.forEach(patient => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${patient.username}</td>
+                            <td>${patient.email}</td>
+                            <td>${patient.firstName}</td>
+                            <td>${patient.lastName}</td>
+                            <td>${patient.identity_number}</td>
+                        `;
+                        patientsBody.appendChild(row);
+                    });
+                } else {
+                    // Handle case where data is not an array
+                    console.error('Data is not an array:', data);
+                    // Optionally, display an error message or handle the issue gracefully
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching patients data:', error);
+                // Handle error if fetching data fails
+            });
+    </script>
+</body>
+
+</html>
