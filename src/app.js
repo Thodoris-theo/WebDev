@@ -14,12 +14,11 @@ const port = 3000;
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Session configuration
 app.use(session({
-    secret: '4R7u3S&^5kT#8@p9A!j2WqZ', // replace with a strong secret key
+    secret: '4R7u3S&^5kT#8@p9A!j2WqZ', 
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // set to true if using HTTPS
+    cookie: { secure: false } 
 }));
 
 // Function to check if user is authenticated
@@ -104,6 +103,73 @@ app.put('/api/doctor/patients/:userId/update', isAuthenticated, checkRole('docto
         res.status(200).json({ message: 'User updated successfully' });
     });
 });
+
+
+
+
+app.post('/api/doctor/patients/:patientId/addMedicalHistory', isAuthenticated, checkRole('doctor'), (req, res) => {
+    const patientId = req.params.patientId; // Get the patientId from the request parameters
+    const { detectedHealthIssues, treatment } = req.body;
+
+    addMedicalHistory(patientId, detectedHealthIssues, treatment, (err, insertId) => {
+        if (err) {
+            res.status(500).json({ error: 'Internal Server Error', message: err.message });
+            return;
+        }
+        res.status(201).json({ message: 'Medical history record added successfully', recordId: insertId });
+    });
+});
+app.put('/api/doctor/medicalHistory/:recordId/update', isAuthenticated, checkRole('doctor'), (req, res) => {
+    const recordId = req.params.recordId; // Get the medical history record ID from the URL parameters
+    const { detectedHealthIssues, treatment } = req.body; // Extract updated data from the request body
+
+    updateMedicalHistory(recordId, detectedHealthIssues, treatment, (err, affectedRows) => {
+        if (err) {
+            res.status(500).json({ error: 'Internal Server Error', message: err.message });
+            return;
+        }
+        if (affectedRows === 0) {
+            res.status(404).json({ error: 'Medical history record not found or not authorized to update' });
+            return;
+        }
+        res.status(200).json({ message: 'Medical history record updated successfully' });
+    });
+});
+
+app.delete('/api/doctor/medicalHistory/:recordId/delete', isAuthenticated, checkRole('doctor'), (req, res) => {
+    const recordId = req.params.recordId; // Get the medical history record ID from the URL parameters
+
+    deleteMedicalHistory(recordId, (err, affectedRows) => {
+        if (err) {
+            res.status(500).json({ error: 'Internal Server Error', message: err.message });
+            return;
+        }
+        if (affectedRows === 0) {
+            res.status(404).json({ error: 'Medical history record not found or not authorized to delete' });
+            return;
+        }
+        res.status(200).json({ message: 'Medical history record deleted successfully' });
+    });
+});
+
+app.get('/api/patient/:patientId/medicalHistory', isAuthenticated, checkRole('doctor'), (req, res) => {
+    const patientId = req.params.patientId;
+
+    getMedicalHistoryByPatient(patientId, (err, records) => {
+        if (err) {
+            res.status(500).json({ error: 'Internal Server Error', message: err.message });
+            return;
+        }
+        if (records.length === 0) {
+            res.status(404).json({ message: 'No medical history found for this patient' });
+            return;
+        }
+        res.status(200).json(records);
+    });
+});
+
+
+
 
 // Protected routes
 app.get('/patient', isAuthenticated, checkRole('patient'), (req, res) => {
