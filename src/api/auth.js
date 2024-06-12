@@ -19,16 +19,15 @@ function loginUser(req, res) {
 }
 
 function redirectToRolePage(req, res, role) {
-    const rolePages = {
-        'patient': '/patient_dashboard',
-        'doctor': '/doctor_dashboard',
-        'secretary': '/secretary_dashboard'
+    const rolePaths = {
+        'patient': '/patient',
+        'doctor': '/doctor',
+        'secretary': '/secretary'
     };
-
-    if (rolePages[role]) {
-        res.json({ success: true, role: role, redirectUrl: rolePages[role] });
+    if (rolePaths[role]) {
+        res.json({ redirectUrl: rolePaths[role] });  // Στέλνει JSON με την URL
     } else {
-        res.status(403).json({ success: false, message: 'Unauthorized access' });
+        res.status(403).send('Unauthorized access');
     }
 }
 

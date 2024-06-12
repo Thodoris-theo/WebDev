@@ -7,7 +7,7 @@ const user_login = (username, password, callback) => {
     db.query(query, [username], (error, results) => {
         if (error) {
             console.error('Error executing the query:', error);
-            return callback(error, null, null);
+            return callback(error, null, null); 
         }
 
         if (results.length === 0) {
@@ -17,14 +17,14 @@ const user_login = (username, password, callback) => {
 
         const user = results[0];
         const hashedPassword = user.password;
-        const role = user.role;
+        const role = user.role; 
 
         if (bcrypt.compareSync(password, hashedPassword)) {
             console.log('Login successful');
-            return callback(null, true, role);
+            return callback(null, true, role); 
         } else {
             console.log('Invalid password');
-            return callback(null, false, null);
+            return callback(null, false, null); 
         }
     });
 };

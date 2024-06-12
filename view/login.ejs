@@ -32,8 +32,13 @@
         </form>
     </main>
     <script>
-        document.getElementById("loginForm").addEventListener("submit", async function(event) {
+        document.getElementById("loginForm").addEventListener("submit", async function (event) {
             event.preventDefault();
+
+            // Καθαρισμός τυχόν προηγούμενων μηνυμάτων λάθους
+            const errorDiv = document.getElementById("errorDiv");
+            errorDiv.textContent = '';
+            errorDiv.style.display = "none";
 
             const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
@@ -50,18 +55,12 @@
                     })
                 });
 
-                const data = await response.json();
-
                 if (!response.ok) {
                     throw new Error("Invalid username or password");
 
                 } else {
-                    // Ανακατεύθυνση βάσει της απάντησης από τον server
-                    if (data.redirectUrl) {
-                        window.location.href = data.redirectUrl;
-                    } else {
-                        throw new Error("No redirection URL provided");
-                    }
+                    const data = await response.json();
+                    window.location.href = data.redirectUrl;
                 }
 
             } catch (error) {
