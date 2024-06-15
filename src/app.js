@@ -10,9 +10,6 @@ const deletePatientById = require('../src/api/delete_patient');
 const db = require('../src/db_connect'); // Import db_connect module
 const app = express();
 const port = 3000;
-const isDoctorAvailable = require("../src/api/isDoctorAvailavle");
-
-
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
@@ -24,6 +21,7 @@ app.use(session({
     cookie: { secure: false } 
 }));
 
+// Function to check if user is authenticated
 function isAuthenticated(req, res, next) {
     if (req.session.user) {
         return next();
@@ -31,6 +29,7 @@ function isAuthenticated(req, res, next) {
     res.status(403).send('Unauthorized access');
 }
 
+// Middleware to check specific roles
 function checkRole(role) {
     return function (req, res, next) {
         if (req.session.user && req.session.user.role === role) {
@@ -40,6 +39,7 @@ function checkRole(role) {
     }
 }
 
+// Pages send
 app.get('/login', (req, res) => {
     res.render(path.join(__dirname, '../view', 'login.ejs'));
 });
@@ -88,8 +88,9 @@ app.delete('/api/doctor/patients/:userId/delete', isAuthenticated, checkRole('do
 
 app.put('/api/doctor/patients/:userId/update', isAuthenticated, checkRole('doctor'), (req, res) => {
     const userId = req.params.userId;
-    const updatedData = req.body; 
+    const updatedData = req.body; // Assuming the updated data is sent in the request body
 
+    // Call a function to update the patient's information
     updatePatient(userId, updatedData, (err, affectedRows) => {
         if (err) {
             res.status(500).json({ error: 'Internal Server Error' });
@@ -102,6 +103,9 @@ app.put('/api/doctor/patients/:userId/update', isAuthenticated, checkRole('docto
         res.status(200).json({ message: 'User updated successfully' });
     });
 });
+
+
+
 
 app.post('/api/doctor/patients/:patientId/addMedicalHistory', isAuthenticated, checkRole('doctor'), (req, res) => {
     const patientId = req.params.patientId; // Get the patientId from the request parameters
@@ -118,6 +122,7 @@ app.post('/api/doctor/patients/:patientId/addMedicalHistory', isAuthenticated, c
 app.put('/api/doctor/medicalHistory/:recordId/update', isAuthenticated, checkRole('doctor'), (req, res) => {
     const recordId = req.params.recordId; // Get the medical history record ID from the URL parameters
     const { detectedHealthIssues, treatment } = req.body; // Extract updated data from the request body
+
     updateMedicalHistory(recordId, detectedHealthIssues, treatment, (err, affectedRows) => {
         if (err) {
             res.status(500).json({ error: 'Internal Server Error', message: err.message });
@@ -166,6 +171,7 @@ app.get('/api/patient/:patientId/medicalHistory', isAuthenticated, checkRole('do
 
 
 
+// Protected routes
 app.get('/patient', isAuthenticated, checkRole('patient'), (req, res) => {
     res.render(path.join(__dirname, '../view/patient', 'patient_dashboard.ejs'));
 });
@@ -184,15 +190,6 @@ app.get('/doctor/update', isAuthenticated, checkRole('doctor'), (req, res) => {
 });
 app.get('/secretary', isAuthenticated, checkRole('secretary'), (req, res) => {
     res.render(path.join(__dirname, '../view/secretary', 'secretary_dashboard.ejs'));
-});
-
-
-
-
-
-app.post('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/login');
 });
 
 app.listen(port, () => {
