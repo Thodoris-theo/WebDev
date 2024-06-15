@@ -66,7 +66,7 @@ USE medical_database;
 -- Insert example data into the users table
     INSERT INTO users (username, email, password, firstName, lastName, identity_number, role) VALUES
     ('johndoe', 'johndoe@example.com', 'password123', 'John', 'Doe', '123456789', 'patient'),
-('janedoe', 'janedoe@example.com', 'password123', 'Jane', 'Doe', '987654321', 'doctor'),
+('janedoe', 'janedoe@example.com', '    ', 'Jane', 'Doe', '987654321', 'doctor'),
 ('marysmith', 'marysmith@example.com', 'password123', 'Mary', 'Smith', '111222333', 'secretary');
 
 -- Insert example data into the patients table

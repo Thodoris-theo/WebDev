@@ -14,6 +14,6 @@ function updateMedicalHistory(recordId, detectedHealthIssues, treatment, callbac
         if (results.affectedRows === 0) {
             console.log('No rows updated, possibly record not found');
         }
-        callback(null, results.affectedRows);  // results.affectedRows will be 0 if no rows were updated
+        callback(null, results.affectedRows);  
     });
 }

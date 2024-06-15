@@ -17,7 +17,6 @@
         <label for="lastName">Last Name:</label>
         <input type="text" id="lastName" name="lastName" required><br>
 
-        <!-- Add more fields for other patient information as needed -->
 
         <button type="submit">Update Patient</button>
     </form>
@@ -41,7 +40,7 @@
                     body: JSON.stringify(updatedData)
                 });
 
-                if (response.ok) {
+                if (response.ok) {  
                     const data = await response.json();
                     alert(data.message);
                 } else {
