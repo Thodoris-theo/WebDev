@@ -11,6 +11,7 @@ const db = require('../src/db_connect'); // Import db_connect module
 const app = express();
 const port = 3001;
 
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -21,6 +22,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: { secure: false } // set to true if using HTTPS
 }));
+
 
 // Function to check if user is authenticated
 function isAuthenticated(req, res, next) {
@@ -52,7 +54,7 @@ app.get('/user', (req, res) => {
 });
 
 app.get('/delete', (req, res) => {
-    res.render(path.join(__dirname, '../view/doctor', 'delete.ejs'));
+    res.render(path.join(__dirname, '../view/functions', 'delete.ejs'));
 });
 app.get('/patient_dashboard', (req, res) => {
     res.render(path.join(__dirname, '../view/patient', 'patient_dashboard.ejs'));
@@ -71,7 +73,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/patients', (req, res) => {
-    res.render(path.join(__dirname, '../view/doctor', 'patients.ejs'));
+    res.render(path.join(__dirname, '../view/functions', 'patients.ejs'));
 });
 
 app.post('/create_user', (req, res) => {
@@ -87,7 +89,7 @@ app.post('/create_user', (req, res) => {
 
 app.post('/login', loginUser);
 
-app.get('/api/doctor/patients', isAuthenticated, checkRole('doctor'), (req, res) => {
+app.get('/api/doctor/patients', isAuthenticated, (req, res) => {
     getPatients((err, patients) => {
         if (err) {
             res.status(500).json({ error: 'Internal Server Error' });
@@ -96,6 +98,7 @@ app.get('/api/doctor/patients', isAuthenticated, checkRole('doctor'), (req, res)
         res.json(patients);
     });
 });
+
 
 app.delete('/api/doctor/patients/:userId/delete', isAuthenticated, checkRole('doctor'), (req, res) => {
     const userId = req.params.userId; // Get the userId from the request parameters
@@ -112,7 +115,8 @@ app.delete('/api/doctor/patients/:userId/delete', isAuthenticated, checkRole('do
     });
 });
 
-app.put('/api/doctor/patients/:userId/update', isAuthenticated, checkRole('doctor'), (req, res) => {
+
+app.put('/api/doctor/patients/:userId/update', isAuthenticated,  (req, res) => {
     const userId = req.params.userId;
     const updatedData = req.body; // Assuming the updated data is sent in the request body
 
@@ -138,8 +142,8 @@ app.get('/patient', isAuthenticated, checkRole('patient'), (req, res) => {
 app.get('/doctor', isAuthenticated, checkRole('doctor'), (req, res) => {
     res.render(path.join(__dirname, '../view/doctor', 'doctor_dashboard.ejs'));
 });
-app.get('/doctor/patients_list', isAuthenticated, checkRole('doctor'), (req, res) => {
-    res.render(path.join(__dirname, '../view/doctor', 'patients.ejs'));
+app.get('/doctor/patients_list', isAuthenticated, (req, res) => {
+    res.render(path.join(__dirname, '../view/functions', 'patients.ejs'));
 });
 app.get('/doctor/delete', isAuthenticated, checkRole('doctor'), (req, res) => {
     res.render(path.join(__dirname, '../view/doctor', 'delete.ejs'));

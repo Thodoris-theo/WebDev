@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patients Table</title>
+    <link rel="stylesheet" type="text/css" href="patients.css">
+</head>
+
+<body>
+    <h1>Patients Table</h1>
+    <table id="patients-table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Identity Number</th>
+            </tr>
+        </thead>
+        <tbody id="patients-body">
+            <!-- Patients data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        // Fetch patients data from the backend
+        fetch('/api/doctor/patients')
+            .then(response => response.json())
+            .then(data => {
+                const patientsBody = document.getElementById('patients-body');
+                // Check if data is an array
+                if (Array.isArray(data)) {
+                    // Loop through the patients data and create table rows
+                    data.forEach(patient => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><input type="text" value="${patient.username}" disabled></td>
+                            <td><input type="text" value="${patient.email}" disabled></td>
+                            <td><input type="text" value="${patient.firstName}" disabled></td>
+                            <td><input type="text" value="${patient.lastName}" disabled></td>
+                            <td><input type="text" value="${patient.identity_number}" disabled></td>
+                            <td>
+                                <button onclick="editPatient(this)">Edit</button>
+                                <button onclick="savePatient(this, ${patient.id})" style="display:none;">Save</button>
+                                <button onclick="cancelEdit(this)" style="display:none;">Cancel</button>
+                            </td>
+                        `;
+                        patientsBody.appendChild(row);
+                    });
+                } else {
+                    // Handle case where data is not an array
+                    console.error('Data is not an array:', data);
+                    // Optionally, display an error message or handle the issue gracefully
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching patients data:', error);
+                // Handle error if fetching data fails
+            });
+    
+        function editPatient(button) {
+            const row = button.parentNode.parentNode;
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.disabled = false;  // Enable input for editing
+            });
+            button.style.display = 'none';  // Hide the Edit button
+            button.nextElementSibling.style.display = '';  // Show the Save button
+            button.nextElementSibling.nextElementSibling.style.display = '';  // Show the Cancel button
+        }
+    
+        function savePatient(button, id) {
+            const row = button.parentNode.parentNode;
+            const inputs = row.querySelectorAll('input');
+            const data = {
+                username: inputs[0].value,
+                email: inputs[1].value,
+                firstName: inputs[2].value,
+                lastName: inputs[3].value,
+                identity_number: inputs[4].value
+            };
+        
+            fetch(`/api/doctor/patients/${id}/update`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to save patient');
+                return response.json();
+            })
+            .then(() => {
+                // Κώδικας που εκτελείται όταν η αποθήκευση είναι επιτυχής
+            })
+            .catch(error => {
+                console.error('Error saving patient:', error);
+            })
+            .finally(() => {
+                // Ο κώδικας που εκτελείται είτε η αποθήκευση επιτύχει είτε αποτύχει
+                inputs.forEach(input => {
+                    input.defaultValue = input.value;  // Update the original value
+                    input.disabled = true;             // Disable the input
+                });
+                button.style.display = 'none';                         // Hide the Save button
+                button.nextElementSibling.style.display = 'none';      // Hide the Cancel button
+                row.querySelector('button[onclick^="editPatient"]').style.display = '';  // Show the Edit button
+            });
+        }
+        
+    
+        function cancelEdit(button) {
+            const row = button.parentNode.parentNode;
+            const inputs = row.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.value = input.defaultValue;  // Reset to the original value
+                input.disabled = true;             // Disable the input
+            });
+            button.style.display = 'none';  // Hide the Cancel button
+            button.previousElementSibling.style.display = 'none';  // Hide the Save button
+            row.querySelector('button[onclick^="editPatient"]').style.display = '';  // Show the Edit button
+        }
+    </script>
+    
+    
+</body>
+
+</html>
