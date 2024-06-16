@@ -37,22 +37,21 @@
                     data.forEach(patient => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${patient.id}</td>
-                            <td>${patient.amka}</td>
-                            <td><input type="text" value="${patient.username}" disabled></td>
-                            <td><input type="text" value="${patient.email}" disabled></td>
-                            <td><input type="text" value="${patient.firstName}" disabled></td>
-                            <td><input type="text" value="${patient.lastName}" disabled></td>
-                            <td>
-                                <button onclick="editPatient(this)">Edit</button>
-                                <button onclick="showMedicalHistory(this, '${patient.amka}')">Medical History</button>
-                                <button onclick="savePatient(this, '${patient.id}')" style="display:none;">Save</button>
-                                <button onclick="cancelEdit(this)" style="display:none;">Cancel</button>
-                            </td>
-                        `;
+                    <td>${patient.id}</td>
+                    <td>${patient.amka}</td>
+                    <td><input type="text" value="${patient.username}" disabled></td>
+                    <td><input type="text" value="${patient.email}" disabled></td>
+                    <td><input type="text" value="${patient.firstName}" disabled></td>
+                    <td><input type="text" value="${patient.lastName}" disabled></td>
+                    <td>
+                        <button onclick="editPatient(this)">Edit</button>
+                        <button onclick="showMedicalHistory(this, '${patient.identity_number}')">Medical History</button>
+                        <button onclick="savePatient(this, '${patient.identity_number}')" style="display:none;">Save</button>
+                        <button onclick="cancelEdit(this)" style="display:none;">Cancel</button>
+                    </td>
+                `;
                         patientsBody.appendChild(row);
                     });
-                    
                 } else {
                     console.error('Received data is not an array:', data);
                 }
@@ -146,5 +145,4 @@
     </script>
 
 </body>
-
 </html>
