@@ -21,112 +21,124 @@
             </tr>
         </thead>
         <tbody id="patients-body">
-            <!-- Patients data will be inserted here dynamically -->
+            <!-- Dynamic patient data will be inserted here -->
         </tbody>
     </table>
 
     <script>
-        // Fetch patients data from the backend
+        // Fetch patient data from the backend and populate the table
         fetch('/api/doctor/patients')
             .then(response => response.json())
             .then(data => {
                 const patientsBody = document.getElementById('patients-body');
-                // Check if data is an array
                 if (Array.isArray(data)) {
-                    // Loop through the patients data and create table rows
                     data.forEach(patient => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td><input type="text" value="${patient.username}" disabled></td>
-                            <td><input type="text" value="${patient.email}" disabled></td>
-                            <td><input type="text" value="${patient.firstName}" disabled></td>
-                            <td><input type="text" value="${patient.lastName}" disabled></td>
-                            <td><input type="text" value="${patient.identity_number}" disabled></td>
-                            <td>
-                                <button onclick="editPatient(this)">Edit</button>
-                                <button onclick="savePatient(this, ${patient.id})" style="display:none;">Save</button>
-                                <button onclick="cancelEdit(this)" style="display:none;">Cancel</button>
-                            </td>
-                        `;
+                    <td><input type="text" value="${patient.username}" disabled></td>
+                    <td><input type="text" value="${patient.email}" disabled></td>
+                    <td><input type="text" value="${patient.firstName}" disabled></td>
+                    <td><input type="text" value="${patient.lastName}" disabled></td>
+                    <td>
+                        <button onclick="editPatient(this)">Edit</button>
+                        <button onclick="showMedicalHistory(this, '${patient.identity_number}')">Medical History</button>
+                        <button onclick="savePatient(this, '${patient.identity_number}')" style="display:none;">Save</button>
+                        <button onclick="cancelEdit(this)" style="display:none;">Cancel</button>
+                    </td>
+                `;
                         patientsBody.appendChild(row);
                     });
                 } else {
-                    // Handle case where data is not an array
-                    console.error('Data is not an array:', data);
-                    // Optionally, display an error message or handle the issue gracefully
+                    console.error('Received data is not an array:', data);
                 }
             })
             .catch(error => {
-                console.error('Error fetching patients data:', error);
-                // Handle error if fetching data fails
+                console.error('Failed to fetch patient data:', error);
             });
-    
+
         function editPatient(button) {
             const row = button.parentNode.parentNode;
             const inputs = row.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.disabled = false;  // Enable input for editing
-            });
-            button.style.display = 'none';  // Hide the Edit button
-            button.nextElementSibling.style.display = '';  // Show the Save button
-            button.nextElementSibling.nextElementSibling.style.display = '';  // Show the Cancel button
+            inputs.forEach(input => input.disabled = false);
+            button.style.display = 'none';
+            button.nextElementSibling.style.display = 'none';
+            button.nextElementSibling.nextElementSibling.style.display = '';
+            button.nextElementSibling.nextElementSibling.nextElementSibling.style.display = '';
         }
-    
-        function savePatient(button, id) {
+
+        function showMedicalHistory(button, identityNumber) {
+            const row = button.parentNode.parentNode;
+            if (row.nextElementSibling && row.nextElementSibling.classList.contains('medical-history-row')) {
+                row.parentNode.removeChild(row.nextElementSibling);
+                return;
+            }
+            fetch(`/api/doctor/patients/${identityNumber}/medical-history`)
+                .then(response => response.json())
+                .then(history => {
+                    const historyRow = document.createElement('tr');
+                    historyRow.className = 'medical-history-row';
+                    let historyData = '<td colspan="6"><div>';
+                    if (history.length) {
+                        history.forEach(record => {
+                            historyData += `<p>Record ID: ${record.record_id}, Issues: ${record.detected_health_issues}, Treatment: ${record.treatment}</p>`;
+                        });
+                    } else {
+                        historyData += `<p>No medical history found.</p>`;
+                    }
+                    historyData += '</div></td>';
+                    historyRow.innerHTML = historyData;
+                    row.parentNode.insertBefore(historyRow, row.nextSibling);
+                })
+                .catch(error => console.error('Error fetching medical history:', error));
+        }
+
+        function savePatient(button, identityNumber) {
             const row = button.parentNode.parentNode;
             const inputs = row.querySelectorAll('input');
             const data = {
                 username: inputs[0].value,
                 email: inputs[1].value,
                 firstName: inputs[2].value,
-                lastName: inputs[3].value,
-                identity_number: inputs[4].value
+                lastName: inputs[3].value
             };
-        
-            fetch(`/api/doctor/patients/${id}/update`, {
+            fetch(`/api/doctor/patients/update/${identityNumber}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to save patient');
-                return response.json();
-            })
-            .then(() => {
-                // Κώδικας που εκτελείται όταν η αποθήκευση είναι επιτυχής
-            })
-            .catch(error => {
-                console.error('Error saving patient:', error);
-            })
-            .finally(() => {
-                // Ο κώδικας που εκτελείται είτε η αποθήκευση επιτύχει είτε αποτύχει
-                inputs.forEach(input => {
-                    input.defaultValue = input.value;  // Update the original value
-                    input.disabled = true;             // Disable the input
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to save patient');
+                    return response.json();
+                })
+                .then(() => alert('Update successful!'))
+                .catch(error => {
+                    console.error('Error saving patient:', error);
+                    alert('Error saving patient.');
+                })
+                .finally(() => {
+                    inputs.forEach(input => {
+                        input.defaultValue = input.value;
+                        input.disabled = true;
+                    });
+                    button.style.display = 'none';
+                    button.nextElementSibling.style.display = 'none';
+                    row.querySelector('button[onclick^="editPatient"]').style.display = '';
                 });
-                button.style.display = 'none';                         // Hide the Save button
-                button.nextElementSibling.style.display = 'none';      // Hide the Cancel button
-                row.querySelector('button[onclick^="editPatient"]').style.display = '';  // Show the Edit button
-            });
         }
-        
-    
+
         function cancelEdit(button) {
             const row = button.parentNode.parentNode;
             const inputs = row.querySelectorAll('input');
             inputs.forEach(input => {
-                input.value = input.defaultValue;  // Reset to the original value
-                input.disabled = true;             // Disable the input
+                input.value = input.defaultValue;
+                input.disabled = true;
             });
-            button.style.display = 'none';  // Hide the Cancel button
-            button.previousElementSibling.style.display = 'none';  // Hide the Save button
-            row.querySelector('button[onclick^="editPatient"]').style.display = '';  // Show the Edit button
+            row.querySelector('button[onclick^="editPatient"]').style.display = '';
+            row.querySelector('button[onclick^="showMedicalHistory"]').style.display = '';
+            button.style.display = 'none';
+            button.previousElementSibling.style.display = 'none';
         }
     </script>
-    
-    
-</body>
 
+</body>
 </html>

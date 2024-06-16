@@ -5,7 +5,7 @@ const path = require('path');
 const insertUser = require('../src/api/user_create');
 const { loginUser } = require('../src/api/auth');
 const getPatients = require("../src/api/view_patients");
-const updatedData = require("../src/api/update_patient");
+const updatePatient = require("../src/api/update_patient");
 const deletePatientById = require('../src/api/delete_patient');
 const db = require('../src/db_connect'); // Import db_connect module
 const app = express();
@@ -116,23 +116,50 @@ app.delete('/api/doctor/patients/:userId/delete', isAuthenticated, checkRole('do
 });
 
 
-app.put('/api/doctor/patients/:userId/update', isAuthenticated,  (req, res) => {
-    const userId = req.params.userId;
-    const updatedData = req.body; // Assuming the updated data is sent in the request body
+app.put('/api/doctor/patients/update/:identityNumber', isAuthenticated, (req, res) => {
+    const identityNumber = req.params.identityNumber;
+    const updatedData = req.body;
 
-    // Call a function to update the patient's information
-    updatePatient(userId, updatedData, (err, affectedRows) => {
+    updatePatient(identityNumber, updatedData, (err, affectedRows) => {
         if (err) {
             res.status(500).json({ error: 'Internal Server Error' });
             return;
         }
         if (affectedRows === 0) {
-            res.status(404).json({ error: 'User not found or not authorized to update' });
+            res.status(404).json({ error: 'Patient not found or not authorized to update' });
             return;
         }
-        res.status(200).json({ message: 'User updated successfully' });
+        res.status(200).json({ message: 'Patient updated successfully' });
     });
 });
+
+app.get('/api/doctor/patients/:identityNumber/medical-history', isAuthenticated, (req, res) => {
+    const identityNumber = req.params.identityNumber;
+
+    getMedicalHistoryByIdentity(identityNumber, (err, history) => {
+        if (err) {
+            res.status(500).json({ error: 'Internal Server Error' });
+            return;
+        }
+        if (!history) {
+            res.status(404).json({ message: 'No medical history found' });
+            return;
+        }
+        res.json(history);
+    });
+});
+
+function getMedicalHistoryByIdentity(identityNumber, callback) {
+    const query = 'SELECT * FROM medical_history WHERE patient_id IN (SELECT id FROM users WHERE identity_number = ?)';
+    db.query(query, [identityNumber], (err, results) => {
+        if (err) {
+            callback(err, null);
+            return;
+        }
+        callback(null, results);
+    });
+}
+
 
 // Protected routes
 app.get('/patient', isAuthenticated, checkRole('patient'), (req, res) => {
